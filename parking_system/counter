@@ -17,8 +17,7 @@ end counter;
 
 architecture Behavioral of counter is
     signal sig_count : unsigned(nbit - 1 downto 0) := (others => '0');
-    signal last_s1 : std_logic := '1';  -- To store the last state of s1 for edge detection
-    signal last_s2 : std_logic := '1';  -- To store the last state of s2 for edge detection
+
 begin
 
     process(clk, rst)
@@ -27,22 +26,19 @@ begin
             sig_count <= (others => '0');  -- Asynchronous reset to zero
         elsif rising_edge(clk) then
             -- Edge detection for s1 (increment on rising edge)
-            if last_s1 = '0' and s1 = '1' then
+            if  s1 = '1' then
                 if sig_count /= (2**nbit - 1) then -- Evita overflow
                     sig_count <= sig_count + 1;
                 end if;
             end if;
 
             -- Edge detection for s2 (decrement on falling edge)
-            if last_s2 = '1' and s2 = '0' then
+            if  s2 = '0' then
                 if sig_count /= 0 then -- Evita underflow
                     sig_count <= sig_count - 1;
                 end if;
             end if;
 
-            -- Update the last states at the end of the process
-            last_s1 <= s1;
-            last_s2 <= s2;
         end if;
     end process;
 
