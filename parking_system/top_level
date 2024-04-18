@@ -22,7 +22,8 @@ entity top_level is
         LED16_G   : out std_logic;
         LED16_R   : out std_logic;
         LED17_G   : out std_logic;
-        LED17_R   : out std_logic
+        LED17_R   : out std_logic;
+        display_select : in std_logic
     );
 end top_level;
 
@@ -69,6 +70,7 @@ architecture Behavioral of top_level is
     signal sig_s1, sig_s2 : std_logic;
     signal sig_tmp : std_logic_vector(15 downto 0); -- Ajustado para 4 dígitos
     signal sig_distance1, sig_distance2 : std_logic_vector(15 downto 0); -- Separate distance signals
+    signal CA1, CB1, CC1, CD1, CE1, CF1, CG1, DP1, CA2, CB2, CC2, CD2, CE2, CF2, CG2, DP2 : std_logic;
 
 begin
     -- Sensor Instances
@@ -113,14 +115,14 @@ begin
             clk   => CLK100MHZ,
             rst   => BTNC,
             bin   => sig_tmp,
-            seg(6)   => CA,
-            seg(5)   => CB,
-            seg(4)   => CC,
-            seg(3)   => CD,
-            seg(2)   => CE,
-            seg(1)   => CF,
-            seg(0)   => CG,
-            dp    => DP,
+            seg(6)   => CA1,
+            seg(5)   => CB1,
+            seg(4)   => CC1,
+            seg(3)   => CD1,
+            seg(2)   => CE1,
+            seg(1)   => CF1,
+            seg(0)   => CG1,
+            dp    => DP1,
             an    => AN(3 downto 0)
         );
     
@@ -129,14 +131,24 @@ begin
             clk   => CLK100MHZ,
             rst   => BTNC,
             bin   => sig_distance1,
-            seg(6)   => CA,
-            seg(5)   => CB,
-            seg(4)   => CC,
-            seg(3)   => CD,
-            seg(2)   => CE,
-            seg(1)   => CF,
-            seg(0)   => CG,
-            dp    => DP,
+            seg(6)   => CA2,
+            seg(5)   => CB2,
+            seg(4)   => CC2,
+            seg(3)   => CD2,
+            seg(2)   => CE2,
+            seg(1)   => CF2,
+            seg(0)   => CG2,
+            dp    => DP2,
             an    => AN(7 downto 4)
         );
+        
+        CA <= CA1 when display_select = '0' else CA2;
+        CB <= CB1 when display_select = '0' else CB2;
+        CC <= CC1 when display_select = '0' else CC2;
+        CD <= CD1 when display_select = '0' else CD2;
+        CE <= CE1 when display_select = '0' else CE2;
+        CF <= CF1 when display_select = '0' else CF2;
+        CG <= CG1 when display_select = '0' else CG2;
+        DP <= DP1 when display_select = '0' else DP2;
+        
 end Behavioral;
