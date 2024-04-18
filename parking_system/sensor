@@ -13,22 +13,18 @@ entity sensor is
 end sensor;
 
 architecture Behavioral of sensor is
+
     signal last_echo : STD_LOGIC := '0';  -- Sinal para armazenar o último estado de 'echo'
     signal echo_start : boolean := false;
     signal timer : unsigned(15 downto 0) := (others => '0');
     signal sig_distance : unsigned(15 downto 0) := (others => '0');
     signal sensor_sig : std_logic := '0';
-
-    -- Definição dos sinais
-    signal trigger_pulse_count    : integer := 0;
-    signal trigger_interval_count : integer := 0;
-    signal trigger_active         : std_logic := '0';
-
-    -- Definição das constantes
-    constant PULSE_LENGTH    : integer := 1000;        -- 10 us, 1000 ciclos de 10 ns cada
-    constant INTERVAL_LENGTH : integer := 6000000;     -- 60 ms, 6000000 ciclos de 10 ns cada
-
     
+    constant trigger_pulse_duration : natural := 10;  -- 10 us pulse duration (1000 cycles at 100 MHz)
+    constant trigger_interval_duration : natural := 6;  -- 60 ms interval duration (6000000 cycles at 100 MHz)
+    signal trig_timer : natural := 0;  -- Counter for triggering the pulse
+    signal pulse_active : std_logic := '0';  -- To control pulse generation
+
 begin
     -- Ultrasonic measurement process
     ultrasonic_process: process(clk)
@@ -46,6 +42,7 @@ begin
             echo_start <= false;
             sensor_sig <= '1';  -- Sinaliza que o pulso de 'echo' terminou
             sig_distance <= timer / 58;  -- Convers?o de tempo para distância
+            
         else
             sensor_sig <= '0';  -- Reseta 'sensor_sig' se n?o houver borda de descida
         end if;
@@ -63,20 +60,18 @@ end process;
     trig_process: process(clk)
     begin
         if rising_edge(clk) then
-            if trigger_active = '1' then
-                if trigger_pulse_count < PULSE_LENGTH then
-                    trig <= '1';  -- Mantém o trigger alto
-                    trigger_pulse_count <= trigger_pulse_count + 1;
-                else
-                    trig <= '0';  -- Desativa o trigger após 10 us
-                    trigger_active <= '0';
-                    trigger_pulse_count <= 0;
-                    trigger_interval_count <= 0;  -- Inicia a contagem do intervalo
-                end if;
-            elsif trigger_interval_count < INTERVAL_LENGTH then
-                trigger_interval_count <= trigger_interval_count + 1;
+            if trig_timer < trigger_pulse_duration then
+                trig <= '1';  -- Trigger is high for 10 us
+                pulse_active <= '1';
+            elsif trig_timer >= trigger_pulse_duration and trig_timer < trigger_interval_duration then
+                trig <= '0';  -- Trigger is low for the rest of the interval
+            end if;
+
+            if trig_timer >= trigger_interval_duration then
+                trig_timer <= 0;  -- Reset the timer after 60 ms
+                pulse_active <= '0';
             else
-                trigger_active <= '1';  -- Reativa o trigger após 60 ms
+                trig_timer <= trig_timer + 1;  -- Increment the timer
             end if;
         end if;
     end process;
