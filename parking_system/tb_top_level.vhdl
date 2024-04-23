@@ -2,130 +2,115 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity top_level is
-    Port (
-        CLK100MHZ : in  std_logic;                    -- Clock principal
-        BTNC      : in  std_logic;                    -- Reset geral
-        echo1     : in  std_logic;                    -- Echo sensor 1
-        echo2     : in  std_logic;                    -- Echo sensor 2
-        trig1     : out std_logic;                    -- Trigger sensor 1
-        trig2     : out std_logic;                    -- Trigger sensor 2
-        CA        : out   std_logic;                    --! Cathode of segment A
-        CB        : out   std_logic;                    --! Cathode of segment B
-        CC        : out   std_logic;                    --! Cathode of segment C
-        CD        : out   std_logic;                    --! Cathode of segment D
-        CE        : out   std_logic;                    --! Cathode of segment E
-        CF        : out   std_logic;                    --! Cathode of segment F
-        CG        : out   std_logic;                    --! Cathode of segment G
-        DP        : out   std_logic;                    --! Decimal point
-        AN       : out std_logic_vector(7 downto 0) -- Ânodos display 
-    );
-end top_level;
+entity top_level_tb is
+-- This test bench entity does not have ports.
+end top_level_tb;
 
-architecture Behavioral of top_level is
-    
-    -- Component Declarations
-    component sensor is
-      Port (
-            clk : in STD_LOGIC;  -- Clock
-            trig : out STD_LOGIC;  -- Pino Trigger do HC-SR04
-            echo : in STD_LOGIC;  -- Pino Echo do HC-SR04
-            sensor_out : out STD_LOGIC;  -- Sinal processado do sensor
-            distance : out std_logic_vector(15 downto 0)
+architecture behavior of top_level_tb is 
+    -- Component Declaration for the Unit Under Test (UUT)
+    component top_level
+        Port (
+            CLK100MHZ : in  std_logic;
+            BTNC      : in  std_logic;
+            echo1     : in  std_logic;
+            echo2     : in  std_logic;
+            trig1     : out std_logic;
+            trig2     : out std_logic;
+            CA        : out std_logic;
+            CB        : out std_logic;
+            CC        : out std_logic;
+            CD        : out std_logic;
+            CE        : out std_logic;
+            CF        : out std_logic;
+            CG        : out std_logic;
+            DP        : out std_logic;
+            AN        : out std_logic_vector(7 downto 0);
+            LED16_G   : out std_logic;
+            LED16_R   : out std_logic;
+            LED17_G   : out std_logic;
+            LED17_R   : out std_logic;
+            display_select : in std_logic;
+            sig_out : out std_logic_vector(15 downto 0)
         );
     end component;
-    
-    component counter is
-      generic(
-        nbit : integer := 16  -- Número de bits do contador aumentado para suportar 4 dígitos BCD
-      );
-      Port ( 
-        clk : in std_logic;
-        rst : in std_logic;
-        s1 : in std_logic;
-        s2 : in std_logic;
-        count : out std_logic_vector(nbit - 1 downto 0)
-      );
-    end component;
-    
-    component display is
-            port (
-                clk   : in  std_logic;
-                rst   : in  std_logic;
-                bin   : in  std_logic_vector(15 downto 0);  -- Entrada binária ajustada para 4 dígitos
-                seg   : out std_logic_vector(6 downto 0);
-                dp    : out std_logic;
-                an    : out std_logic_vector(3 downto 0)
-            );
-   end component;
 
-    -- Internal Signals
-    signal sig_s1, sig_s2 : std_logic;
-    signal sig_tmp : std_logic_vector(15 downto 0); -- Ajustado para 4 dígitos
-    signal sig_distance1, sig_distance2 : std_logic_vector(15 downto 0); -- Separate distance signals
+    -- Input signals
+    signal CLK100MHZ : std_logic := '0';
+    signal BTNC : std_logic := '0';
+    signal echo1 : std_logic := '0';
+    signal echo2 : std_logic := '0';
+    signal display_select : std_logic := '0';
+
+    -- Output signals
+    signal trig1, trig2 : std_logic;
+    signal CA, CB, CC, CD, CE, CF, CG, DP : std_logic;
+    signal AN : std_logic_vector(7 downto 0);
+    signal LED16_G, LED16_R, LED17_G, LED17_R : std_logic;
+    signal sig_out : std_logic_vector(15 downto 0);
+
+    -- Clock period definitions
+    constant clk_period : time := 10 ns;
 
 begin
-    -- Sensor Instances
-    sensor1 : sensor
+    -- Instantiate the Unit Under Test (UUT)
+    uut: top_level
         port map (
-            clk => CLK100MHZ,
-            trig => trig1,
-            echo => echo1,
-            sensor_out => sig_s1,
-            distance => sig_distance1
+            CLK100MHZ => CLK100MHZ,
+            BTNC => BTNC,
+            echo1 => echo1,
+            echo2 => echo2,
+            trig1 => trig1,
+            trig2 => trig2,
+            CA => CA,
+            CB => CB,
+            CC => CC,
+            CD => CD,
+            CE => CE,
+            CF => CF,
+            CG => CG,
+            DP => DP,
+            AN => AN,
+            LED16_G => LED16_G,
+            LED16_R => LED16_R,
+            LED17_G => LED17_G,
+            LED17_R => LED17_R,
+            display_select => display_select,
+            sig_out => sig_out
         );
-        
-    sensor2 : sensor
-        port map (
-            clk => CLK100MHZ,
-            trig => trig2,
-            echo => echo2,
-            sensor_out => sig_s2,
-            distance => sig_distance2
-        );
-    -- Counter Instances
-    count : counter
-        generic map (
-            nbit => 16  -- Define a largura do contador
-        )
-        Port map( 
-            clk => CLK100MHZ,  
-            rst => BTNC,   
-            s1  => sig_s1,   
-            s2  => sig_s2,  
-            count => sig_tmp
-        );
-        
-    -- Display Instances
-    display1 : display
-        port map (
-            clk   => CLK100MHZ,
-            rst   => BTNC,
-            bin   => sig_tmp,
-            seg(6)   => CA,
-            seg(5)   => CB,
-            seg(4)   => CC,
-            seg(3)   => CD,
-            seg(2)   => CE,
-            seg(1)   => CF,
-            seg(0)   => CG,
-            dp    => DP,
-            an    => AN(3 downto 0)
-        );
-    
-    display2 : display
-        port map (
-            clk   => CLK100MHZ,
-            rst   => BTNC,
-            bin   => sig_distance1,
-            seg(6)   => CA,
-            seg(5)   => CB,
-            seg(4)   => CC,
-            seg(3)   => CD,
-            seg(2)   => CE,
-            seg(1)   => CF,
-            seg(0)   => CG,
-            dp    => DP,
-            an    => AN(7 downto 4)
-        );
-end Behavioral;
+
+    -- Clock process definitions
+    clk_process : process
+    begin
+        CLK100MHZ <= '0';
+        wait for clk_period/2;
+        CLK100MHZ <= '1';
+        wait for clk_period/2;
+    end process;
+
+    -- Stimulus process
+    stim_proc : process
+    begin  
+        -- Initialize Inputs
+        BTNC <= '1';
+        wait for clk_period*10;  -- Wait for the reset to take effect
+        BTNC <= '0';
+
+        wait for clk_period*10;
+        echo1 <= '1';
+        wait for clk_period*5;
+        echo1 <= '0';
+
+        wait for clk_period*10;
+        echo2 <= '1';
+        wait for clk_period*5;
+        echo2 <= '0';
+
+        wait for clk_period*10;
+        display_select <= '1'; -- Change display output
+
+        wait for clk_period*10;
+        display_select <= '0'; -- Change display output back
+
+        wait;
+    end process;
+end behavior;
