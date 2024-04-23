@@ -22,8 +22,8 @@ architecture Behavioral of sensor is
     signal sig_distance : unsigned(15 downto 0) := (others => '0');
     signal sensor_sig : std_logic := '0';
     
-    constant trigger_pulse_duration : natural := 10000;  -- 10 us pulse duration (1000 cycles at 100 MHz)
-    constant trigger_interval_duration : natural := 6000000;  -- 60 ms interval duration (6000000 cycles at 100 MHz)
+    constant trigger_pulse_duration : natural := 10;  -- 10 us pulse duration (1000 cycles at 100 MHz)
+    constant trigger_interval_duration : natural := 20;  -- 60 ms interval duration (6000000 cycles at 100 MHz)
     signal trig_timer : natural := 0;  -- Counter for triggering the pulse
     signal pulse_active : std_logic := '0';  -- To control pulse generation
 
@@ -42,6 +42,7 @@ begin
         if echo = '1' and not echo_start then
             -- Início do pulso de 'echo'
             echo_start <= true;
+            state <= zavreno;
             timer <= (others => '0');
             state <= zavreno;
         elsif last_echo = '1' and echo = '0' then
@@ -78,7 +79,7 @@ end process;
                 trig <= '0';  -- Trigger is low for the rest of the interval
             end if;
 
-            if trig_timer >= trigger_interval_duration then
+            if trig_timer = trigger_interval_duration then
                 trig_timer <= 0;  -- Reset the timer after 60 ms
                 pulse_active <= '0';
             else
