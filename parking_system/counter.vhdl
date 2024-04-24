@@ -27,15 +27,15 @@ begin
             s1_prev <= '0';
             s2_prev <= '0';  
         elsif rising_edge(clk) then
-            s1_prev <= s1;  -- Store current state for next clock edge
-            s2_prev <= s2;  -- Store current state for next clock edge
-            if s1 = '1' and s1_prev = '0' then  -- Detect rising edge on s1
+            s1_prev <= s1;  
+            s2_prev <= s2; 
+            if s1 = '1' and s1_prev = '0' then  
                 if sig_count < 15 then
                     sig_count <= sig_count + 1; 
                 else
                     sig_count <= (others => '0');
                 end if;
-            elsif s2 = '1' and s2_prev = '0' then  -- Detect falling edge on s2
+            elsif s2 = '1' and s2_prev = '0' then 
                 if sig_count > 0 then
                     sig_count <= sig_count - 1;
                  else
