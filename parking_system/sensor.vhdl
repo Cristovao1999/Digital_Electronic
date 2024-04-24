@@ -26,8 +26,7 @@ architecture Behavioral of sensor is
     signal trig_timer : integer := 0;
     signal sig_led_green : std_logic := '0'; 
     signal sig_led_red : std_logic := '1';
-    signal pocet_mist : integer range 0 to 15 :=15;
-    type states is (otevreno, zavreno, obsazeno);
+    type states is (otevreno, zavreno);
     signal state : states;
 
 begin
@@ -45,19 +44,12 @@ begin
                     state <= otevreno;
                     sensor_sig <= '0'; 
                     if sig_distance = 6 then
-                        pocet_mist <= pocet_mist + 1;
-                        if pocet_mist < 15 then
-                             state <= zavreno;
-                             sensor_sig <= '1';
-                        else
-                            state <= obsazeno;
-                            sensor_sig <= '0'; 
-                       end if;
+                        state <= zavreno;
+                        sensor_sig <= '1';
                     end if;
                 else
                     state <= zavreno; 
                     sensor_sig <= '0';
-                    pocet_mist <= pocet_mist - 1;
                 end if;
         end if;
 
@@ -97,9 +89,6 @@ begin
                 when otevreno =>
                     sig_led_green <= '1';
                     sig_led_red <= '0';
-               when obsazeno =>
-                    sig_led_green <= '0';
-                    sig_led_red <= '1';
             end case;
         end if;
     end process;
