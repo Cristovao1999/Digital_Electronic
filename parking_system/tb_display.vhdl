@@ -52,10 +52,10 @@ begin
         wait for clk_period/2;
     end process;
 
-    -- Input Stimulus Process
+
     stim_proc: process
     begin
-        -- Reset
+      
         rst <= '1';
         bin <= (others => '0');
         wait for 100 ns;  
